@@ -19,7 +19,6 @@ from load_blender import load_blender_data
 from load_LINEMOD import load_LINEMOD_data
 
 
-device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 np.random.seed(0)
 DEBUG = False
 
@@ -167,6 +166,7 @@ def render_path(render_poses, hwf, K, chunk, render_kwargs, gt_imgs=None, savedi
             rgb8 = to8b(rgbs[-1])
             filename = os.path.join(savedir, '{:03d}.png'.format(i))
             imageio.imwrite(filename, rgb8)
+        break # for test
 
 
     rgbs = np.stack(rgbs, 0)
@@ -188,14 +188,14 @@ def create_nerf(args):
     skips = [4]
     model = NeRF(D=args.netdepth, W=args.netwidth,
                  input_ch=input_ch, output_ch=output_ch, skips=skips,
-                 input_ch_views=input_ch_views, use_viewdirs=args.use_viewdirs).to(device)
+                 input_ch_views=input_ch_views, use_viewdirs=args.use_viewdirs).to(args.device)
     grad_vars = list(model.parameters())
 
     model_fine = None
     if args.N_importance > 0:
         model_fine = NeRF(D=args.netdepth_fine, W=args.netwidth_fine,
                           input_ch=input_ch, output_ch=output_ch, skips=skips,
-                          input_ch_views=input_ch_views, use_viewdirs=args.use_viewdirs).to(device)
+                          input_ch_views=input_ch_views, use_viewdirs=args.use_viewdirs).to(args.device)
         grad_vars += list(model_fine.parameters())
 
     network_query_fn = lambda inputs, viewdirs, network_fn : run_network(inputs, viewdirs, network_fn,
@@ -527,6 +527,8 @@ def config_parser():
                         help='frequency of testset saving')
     parser.add_argument("--i_video",   type=int, default=50000, 
                         help='frequency of render_poses video saving')
+    parser.add_argument("--device",   type=str, default='cuda', 
+                        help='set cpu or gpu to run the model')
 
     return parser
 
@@ -648,7 +650,7 @@ def train():
     render_kwargs_test.update(bds_dict)
 
     # Move testing data to GPU
-    render_poses = torch.Tensor(render_poses).to(device)
+    render_poses = torch.Tensor(render_poses).to(args.device)
 
     # Short circuit if only rendering out from trained model
     if args.render_only:
@@ -692,10 +694,10 @@ def train():
 
     # Move training data to GPU
     if use_batching:
-        images = torch.Tensor(images).to(device)
-    poses = torch.Tensor(poses).to(device)
+        images = torch.Tensor(images).to(args.device)
+    poses = torch.Tensor(poses).to(args.device)
     if use_batching:
-        rays_rgb = torch.Tensor(rays_rgb).to(device)
+        rays_rgb = torch.Tensor(rays_rgb).to(args.device)
 
 
     N_iters = 200000 + 1
@@ -729,7 +731,7 @@ def train():
             # Random from one image
             img_i = np.random.choice(i_train)
             target = images[img_i]
-            target = torch.Tensor(target).to(device)
+            target = torch.Tensor(target).to(args.device)
             pose = poses[img_i, :3,:4]
 
             if N_rand is not None:
@@ -820,7 +822,7 @@ def train():
             os.makedirs(testsavedir, exist_ok=True)
             print('test poses shape', poses[i_test].shape)
             with torch.no_grad():
-                render_path(torch.Tensor(poses[i_test]).to(device), hwf, K, args.chunk, render_kwargs_test, gt_imgs=images[i_test], savedir=testsavedir)
+                render_path(torch.Tensor(poses[i_test]).to(args.device), hwf, K, args.chunk, render_kwargs_test, gt_imgs=images[i_test], savedir=testsavedir)
             print('Saved test set')
 
 

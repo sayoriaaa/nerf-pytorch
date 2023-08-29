@@ -8,6 +8,21 @@
 
 This project is a faithful PyTorch implementation of [NeRF](http://www.matthewtancik.com/nerf) that **reproduces** the results while running **1.3 times faster**. The code is based on authors' Tensorflow implementation [here](https://github.com/bmild/nerf), and has been tested to match it numerically. 
 
+## New: `extract_mesh.ipynb` is adapted to this repo
+
+### different from original [repo](https://github.com/yenchenlin/nerf-pytorch)
+
+to adapt `extract_mesh.ipynb` to this repo, i made minimal change to `run_nerf.py`, since original repo set device globally. else is same.
+
+### download (especially for China)
+
+an alternative to download pretrained data (containing data from [here](https://drive.google.com/drive/folders/1jIr8dkvefrQmv737fFm2isiT6tqpbTbv) and my training data):
+
+
+https://www.aliyundrive.com/s/U4G4jGL5A2D
+
+
+
 ## Installation
 
 ```
