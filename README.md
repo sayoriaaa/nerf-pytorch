@@ -14,6 +14,13 @@ This project is a faithful PyTorch implementation of [NeRF](http://www.matthewta
 
 to adapt `extract_mesh.ipynb` to this repo, i made minimal change to `run_nerf.py`, since original repo set device globally. else is same.
 
+`extract_mesh.ipynb` supports:
+ - geometry extract
+ - texture extract (new feature)
+ - mesh export
+
+mesh process is based on [trimesh](https://github.com/mikedh/trimesh), since we found texture extract is not supported on pyvista (due to VTK reasons)
+
 ### download (especially for China)
 
 an alternative to download pretrained data (containing data from [here](https://drive.google.com/drive/folders/1jIr8dkvefrQmv737fFm2isiT6tqpbTbv) and my training data):
